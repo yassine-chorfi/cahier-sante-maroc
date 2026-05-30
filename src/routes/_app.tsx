@@ -12,24 +12,19 @@ function AppLayout() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const path = useRouterState({ select: (r) => r.location.pathname });
-  const allowed =
-    user?.role === "admin_local" || user?.role === "agent_local" || user?.role === "super_admin";
+  const allowed = user?.role === "admin_local";
 
   useEffect(() => {
-    if (user === null) {
-      // Wait one tick for localStorage hydration
-      const t = setTimeout(() => {
-        const raw = localStorage.getItem("csm_auth_v1");
-        if (!raw) navigate({ to: "/login" });
-      }, 50);
-      return () => clearTimeout(t);
+    if (!user) {
+      navigate({ to: "/login" });
+      return;
     }
-    if (user && !allowed) {
+    if (!allowed) {
       navigate({ to: "/login" });
     }
   }, [user, allowed, navigate]);
 
-  if (user && !allowed) {
+  if (!user || !allowed) {
     return null;
   }
 

@@ -20,7 +20,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import type { Citizen } from "@/lib/mock-store";
+import type { Citizen } from "@/lib/types";
 import { listCitizens } from "@/lib/api";
 import { PageHeader } from "@/components/PageHeader";
 import { toast } from "sonner";

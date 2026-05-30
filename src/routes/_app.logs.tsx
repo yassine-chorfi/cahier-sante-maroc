@@ -10,7 +10,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import type { ActivityLog } from "@/lib/mock-store";
+import type { ActivityLog } from "@/lib/types";
 import { listLogs } from "@/lib/api";
 import { PageHeader } from "@/components/PageHeader";
 

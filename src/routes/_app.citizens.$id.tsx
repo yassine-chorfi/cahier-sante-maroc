@@ -17,7 +17,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Archive, ChevronLeft, Download, FileText, Pencil, ShieldAlert } from "lucide-react";
-import { store, type Citizen, type ActivityLog } from "@/lib/mock-store";
+import type { ActivityLog, Citizen } from "@/lib/types";
 import { archiveCitizen, getCitizen, updateCitizen } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
 import { PageHeader } from "@/components/PageHeader";
@@ -121,29 +121,6 @@ function CitizenDetailPage() {
     } catch {
       toast.error("Impossible d'archiver le dossier dans la base de donnees");
     }
-    return;
-    store.updateCitizen(citizen!.id, {
-      status: "archived",
-      death: {
-        death_date: deathDate,
-        death_certificate: "certificat_deces.pdf",
-        archived_by: user?.id ?? 0,
-        reason,
-        created_at: new Date().toISOString(),
-      },
-    });
-    store.log({
-      user_id: user?.id ?? 0,
-      user_name: user?.full_name ?? "",
-      citizen_id: citizen!.id,
-      action: "ARCHIVE_CITIZEN",
-      description: `Archivage du dossier ${citizen!.health_record_number} — ${reason}`,
-    });
-    toast.success("Dossier archivé");
-    setArchiveOpen(false);
-    const s = store.get();
-    setCitizen(s.citizens.find((x) => x.id === Number(id)) ?? null);
-    setLogs(s.logs.filter((l) => l.citizen_id === Number(id)));
   }
 
   function downloadPdf() {

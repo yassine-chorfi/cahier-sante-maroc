@@ -2,7 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import bcrypt from "bcryptjs";
 import type { ResultSetHeader, RowDataPacket } from "mysql2";
 import { z } from "zod";
-import type { ActivityLog, Citizen, User } from "./mock-store";
+import type { ActivityLog, Citizen, User } from "./types";
 
 type DbUserRow = {
   id: number;
@@ -77,6 +77,10 @@ type CitizenListInput = {
 type CountRow = {
   total: number;
 };
+
+type LoginResult =
+  | { ok: true; user: User }
+  | { ok: false; reason: "invalid_credentials" | "forbidden" };
 
 function dateOnly(value: string | Date | null | undefined) {
   if (!value) return "";
@@ -262,6 +266,7 @@ export const loginUser = createServerFn({ method: "POST" })
   .inputValidator((data: { identifier: string; password: string }) => data)
   .handler(async ({ data }) => {
     const { query } = await import("./db.server");
+    const identifier = data.identifier.trim();
     const rows = await query<DbUserRow>(
       `SELECT u.*, r.name AS role
        FROM users u
@@ -271,18 +276,42 @@ export const loginUser = createServerFn({ method: "POST" })
          OR LOWER(u.employee_number) = LOWER(:identifier)
        )
        AND u.status = 'active'
-       LIMIT 1`,
-      { identifier: data.identifier },
+       ORDER BY u.id DESC`,
+      { identifier },
     );
-    const row = rows[0];
-    if (!row || !(await verifyPassword(data.password, row.password))) return null;
+    const row = (
+      await Promise.all(
+        rows.map(async (candidate) =>
+          (await verifyPassword(data.password, candidate.password)) ? candidate : null,
+        ),
+      )
+    ).find((candidate): candidate is DbUserRow => Boolean(candidate));
+    if (!row) {
+      return { ok: false, reason: "invalid_credentials" } satisfies LoginResult;
+    }
+    if (row.role !== "admin_local") {
+      await query(
+        `INSERT INTO access_logs (user_id, action, ip_address, establishment_id)
+         VALUES (:userId, 'LOGIN_DENIED', :ip, :establishmentId)`,
+        { userId: row.id, ip: "", establishmentId: row.establishment_id },
+      );
+      await insertLog(
+        row.id,
+        "users",
+        row.id,
+        "LOGIN_DENIED",
+        `Acces refuse pour ${row.name}: role non autorise`,
+        null,
+      );
+      return { ok: false, reason: "forbidden" } satisfies LoginResult;
+    }
     await query(
       `INSERT INTO access_logs (user_id, action, ip_address, establishment_id)
        VALUES (:userId, 'LOGIN', :ip, :establishmentId)`,
       { userId: row.id, ip: "", establishmentId: row.establishment_id },
     );
     await insertLog(row.id, "users", row.id, "LOGIN", `Connexion de ${row.name}`, null);
-    return mapUser(row);
+    return { ok: true, user: mapUser(row) } satisfies LoginResult;
   });
 
 export const logoutUser = createServerFn({ method: "POST" })

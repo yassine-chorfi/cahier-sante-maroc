@@ -16,12 +16,12 @@ export const Route = createFileRoute("/login")({
 function LoginPage() {
   const { login, user } = useAuth();
   const navigate = useNavigate();
-  const [identifier, setIdentifier] = useState("LOC-001");
-  const [password, setPassword] = useState("password");
+  const [identifier, setIdentifier] = useState("");
+  const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (user) navigate({ to: "/" });
+    if (user?.role === "admin_local") navigate({ to: "/" });
   }, [user, navigate]);
 
   function handleSubmit(e: React.FormEvent) {
@@ -61,14 +61,14 @@ function LoginPage() {
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="identifier">Email ou matricule</Label>
+              <Label htmlFor="identifier">Email ou matricule LOC</Label>
               <Input
                 id="identifier"
                 type="text"
                 required
                 value={identifier}
                 onChange={(e) => setIdentifier(e.target.value)}
-                placeholder="LOC-001"
+                placeholder="LOC-001 ou admin@csm.ma"
               />
             </div>
             <div className="space-y-2">

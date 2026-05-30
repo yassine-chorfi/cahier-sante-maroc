@@ -1,8 +1,9 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import { loginUser, logoutUser } from "./api";
-import type { User } from "./mock-store";
+import type { User } from "./types";
 
 const AUTH_KEY = "csm_auth_v1";
+const LEGACY_STORE_KEY = "csm_store_v1";
 
 interface AuthCtx {
   user: User | null;
@@ -16,21 +17,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {
-    const raw = typeof window !== "undefined" ? localStorage.getItem(AUTH_KEY) : null;
-    if (raw) {
-      try {
-        setUser(JSON.parse(raw));
-      } catch {
-        /* ignore */
-      }
-    }
+    if (typeof window === "undefined") return;
+    localStorage.removeItem(LEGACY_STORE_KEY);
+    localStorage.removeItem(AUTH_KEY);
   }, []);
 
   async function login(identifier: string, password: string) {
-    const dbUser = await loginUser({ data: { identifier, password } });
-    if (!dbUser) return { ok: false, error: "Identifiants invalides" };
-    setUser(dbUser);
-    localStorage.setItem(AUTH_KEY, JSON.stringify(dbUser));
+    const result = await loginUser({ data: { identifier: identifier.trim(), password } });
+    if (!result.ok) {
+      return {
+        ok: false,
+        error:
+          result.reason === "forbidden"
+            ? "Acces refuse: ce site est reserve aux utilisateurs LOC."
+            : "Identifiants invalides",
+      };
+    }
+    setUser(result.user);
     return { ok: true };
   }
 
@@ -39,7 +42,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       await logoutUser({ data: { user_id: user.id, name: user.full_name } });
     }
     setUser(null);
-    localStorage.removeItem(AUTH_KEY);
   }
 
   return <Ctx.Provider value={{ user, login, logout }}>{children}</Ctx.Provider>;

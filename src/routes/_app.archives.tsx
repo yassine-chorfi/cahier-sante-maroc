@@ -9,7 +9,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import type { Citizen } from "@/lib/mock-store";
+import type { Citizen } from "@/lib/types";
 import { listAllCitizens } from "@/lib/api";
 import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
