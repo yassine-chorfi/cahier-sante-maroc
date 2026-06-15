@@ -1,6 +1,6 @@
 import { createFileRoute, Link, Outlet, useRouterState } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Eye, FileDown, Loader2, Plus, Search } from "lucide-react";
+import { Edit3, Eye, FileDown, Filter, Loader2, Plus, Search, Trash2 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -109,7 +109,7 @@ function CitizensListPage() {
     a.download = `citoyens-${Date.now()}.csv`;
     a.click();
     URL.revokeObjectURL(url);
-    toast.success("Export CSV telecharge");
+    toast.success("Export CSV téléchargé");
   }
 
   function resetPage() {
@@ -117,17 +117,17 @@ function CitizensListPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="animate-fade-in space-y-6">
       <PageHeader
         title="Citoyens"
-        description="Liste de tous les citoyens enregistres dans votre administration"
+        description="Liste de tous les citoyens enregistrés dans votre administration"
         breadcrumb={["Accueil", "Citoyens"]}
         actions={
           <>
-            <Button variant="outline" onClick={exportCSV}>
+            <Button variant="outline" onClick={exportCSV} className="rounded-2xl border-slate-200 bg-white shadow-sm hover:bg-blue-50">
               <FileDown className="mr-2 h-4 w-4" /> Exporter
             </Button>
-            <Button asChild>
+            <Button asChild className="rounded-2xl bg-blue-600 shadow-lg shadow-blue-600/20 hover:bg-blue-700">
               <Link to="/citizens/new">
                 <Plus className="mr-2 h-4 w-4" /> Nouveau citoyen
               </Link>
@@ -136,19 +136,19 @@ function CitizensListPage() {
         }
       />
 
-      <Card>
-        <CardContent className="space-y-4 p-4">
-          <div className="grid gap-3 lg:grid-cols-[1fr_180px_190px_150px_110px]">
+      <Card className="gov-card animate-slide-up rounded-[1.35rem]">
+        <CardContent className="space-y-5 p-4 md:p-5">
+          <div className="grid gap-3 xl:grid-cols-[1fr_180px_190px_150px_110px]">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
               <Input
-                placeholder="Rechercher CIN, nom, numero, telephone..."
+                placeholder="Rechercher CIN, nom, numéro, téléphone..."
                 value={q}
                 onChange={(e) => {
                   setQ(e.target.value);
                   resetPage();
                 }}
-                className="pl-9"
+                className="h-12 rounded-2xl border-slate-200 bg-slate-50 pl-11 shadow-inner"
               />
             </div>
             <Select
@@ -158,13 +158,14 @@ function CitizensListPage() {
                 resetPage();
               }}
             >
-              <SelectTrigger>
+              <SelectTrigger className="h-12 rounded-2xl border-slate-200">
+                <Filter className="mr-2 h-4 w-4 text-blue-600" />
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Tous les statuts</SelectItem>
                 <SelectItem value="active">Actif</SelectItem>
-                <SelectItem value="archived">Archive</SelectItem>
+                <SelectItem value="archived">Archivé</SelectItem>
               </SelectContent>
             </Select>
             <Select
@@ -174,18 +175,18 @@ function CitizensListPage() {
                 resetPage();
               }}
             >
-              <SelectTrigger>
+              <SelectTrigger className="h-12 rounded-2xl border-slate-200">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="created_at">Creation</SelectItem>
+                <SelectItem value="created_at">Création</SelectItem>
                 <SelectItem value="last_name">Nom</SelectItem>
                 <SelectItem value="birth_date">Naissance</SelectItem>
                 <SelectItem value="health_identifier">Dossier</SelectItem>
               </SelectContent>
             </Select>
             <Select value={sortDir} onValueChange={(v) => setSortDir(v as SortDir)}>
-              <SelectTrigger>
+              <SelectTrigger className="h-12 rounded-2xl border-slate-200">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -200,7 +201,7 @@ function CitizensListPage() {
                 setPage(1);
               }}
             >
-              <SelectTrigger>
+              <SelectTrigger className="h-12 rounded-2xl border-slate-200">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -211,55 +212,62 @@ function CitizensListPage() {
             </Select>
           </div>
 
-          <div className="overflow-hidden rounded-md border">
+          <div className="premium-table overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow>
                   <TableHead>CIN</TableHead>
                   <TableHead>Nom complet</TableHead>
-                  <TableHead>N dossier</TableHead>
                   <TableHead>Date naissance</TableHead>
-                  <TableHead>Telephone</TableHead>
+                  <TableHead>Numéro dossier</TableHead>
+                  <TableHead>Téléphone</TableHead>
                   <TableHead>Statut</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {citizens.map((c) => (
-                  <TableRow key={c.id}>
-                    <TableCell className="font-mono text-xs">{c.cin}</TableCell>
-                    <TableCell className="font-medium">
+                  <TableRow key={c.id} className="h-16">
+                    <TableCell className="font-mono text-xs font-bold text-slate-600">{c.cin}</TableCell>
+                    <TableCell className="font-bold text-slate-900">
                       {c.first_name} {c.last_name}
                     </TableCell>
-                    <TableCell className="font-mono text-xs">{c.health_record_number}</TableCell>
-                    <TableCell>{c.birth_date}</TableCell>
-                    <TableCell>{c.phone}</TableCell>
+                    <TableCell className="text-sm text-slate-600">{c.birth_date}</TableCell>
+                    <TableCell className="font-mono text-xs font-bold text-blue-700">{c.health_record_number}</TableCell>
+                    <TableCell className="text-sm text-slate-600">{c.phone}</TableCell>
                     <TableCell>
-                      <Badge variant={c.status === "active" ? "default" : "secondary"}>
-                        {c.status === "active" ? "Actif" : "Archive"}
+                      <Badge className={c.status === "active" ? "rounded-full bg-emerald-50 px-3 py-1 text-emerald-700 hover:bg-emerald-50" : "rounded-full bg-slate-100 px-3 py-1 text-slate-600 hover:bg-slate-100"}>
+                        {c.status === "active" ? "Actif" : "Archivé"}
                       </Badge>
                     </TableCell>
                     <TableCell className="text-right">
-                      <Button asChild size="sm" variant="ghost">
-                        <Link to="/citizens/$id" params={{ id: String(c.id) }}>
-                          <Eye className="mr-1 h-4 w-4" /> Voir
-                        </Link>
-                      </Button>
+                      <div className="flex justify-end gap-1.5">
+                        <Button asChild size="icon" variant="ghost" className="h-9 w-9 rounded-full hover:bg-blue-50 hover:text-blue-700">
+                          <Link to="/citizens/$id" params={{ id: String(c.id) }} aria-label="Voir">
+                            <Eye className="h-4 w-4" />
+                          </Link>
+                        </Button>
+                        <Button asChild size="icon" variant="ghost" className="h-9 w-9 rounded-full hover:bg-amber-50 hover:text-amber-700">
+                          <Link to="/citizens/$id" params={{ id: String(c.id) }} aria-label="Modifier">
+                            <Edit3 className="h-4 w-4" />
+                          </Link>
+                        </Button>
+                        <Button size="icon" variant="ghost" className="h-9 w-9 rounded-full hover:bg-red-50 hover:text-red-600" aria-label="Supprimer">
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}
                 {citizens.length === 0 && (
                   <TableRow>
-                    <TableCell
-                      colSpan={7}
-                      className="py-10 text-center text-sm text-muted-foreground"
-                    >
+                    <TableCell colSpan={7} className="py-12 text-center text-sm text-slate-500">
                       {loading ? (
-                        <span className="inline-flex items-center gap-2">
+                        <span className="inline-flex items-center gap-2 font-medium">
                           <Loader2 className="h-4 w-4 animate-spin" /> Chargement...
                         </span>
                       ) : (
-                        "Aucun citoyen trouve"
+                        "Aucun citoyen trouvé"
                       )}
                     </TableCell>
                   </TableRow>
@@ -268,22 +276,24 @@ function CitizensListPage() {
             </Table>
           </div>
 
-          <div className="flex flex-col gap-3 text-sm text-muted-foreground md:flex-row md:items-center md:justify-between">
+          <div className="flex flex-col gap-3 text-sm font-medium text-slate-500 md:flex-row md:items-center md:justify-between">
             <p>
-              {total} resultat(s) - page {page} / {pageCount}
+              {total} résultat(s) - page {page} / {pageCount}
             </p>
             <div className="flex gap-2">
               <Button
                 variant="outline"
                 size="sm"
+                className="rounded-xl border-slate-200 bg-white"
                 disabled={page <= 1 || loading}
                 onClick={() => setPage((p) => Math.max(p - 1, 1))}
               >
-                Precedent
+                Précédent
               </Button>
               <Button
                 variant="outline"
                 size="sm"
+                className="rounded-xl border-slate-200 bg-white"
                 disabled={page >= pageCount || loading}
                 onClick={() => setPage((p) => Math.min(p + 1, pageCount))}
               >

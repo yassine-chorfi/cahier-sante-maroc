@@ -4,6 +4,14 @@ import type { User } from "./mock-store";
 
 const AUTH_KEY = "csm_auth_v1";
 
+function hasLocalAccess(user: User | null) {
+  return (
+    !!user &&
+    (user.role === "admin_local" || user.role === "agent_local") &&
+    user.employee_number.toUpperCase().startsWith("LOC-")
+  );
+}
+
 interface AuthCtx {
   user: User | null;
   login: (identifier: string, password: string) => Promise<{ ok: boolean; error?: string }>;
@@ -19,7 +27,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const raw = typeof window !== "undefined" ? localStorage.getItem(AUTH_KEY) : null;
     if (raw) {
       try {
-        setUser(JSON.parse(raw));
+        const storedUser = JSON.parse(raw) as User;
+        if (hasLocalAccess(storedUser)) {
+          setUser(storedUser);
+        } else {
+          localStorage.removeItem(AUTH_KEY);
+        }
       } catch {
         /* ignore */
       }
@@ -28,7 +41,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   async function login(identifier: string, password: string) {
     const dbUser = await loginUser({ data: { identifier, password } });
-    if (!dbUser) return { ok: false, error: "Identifiants invalides" };
+    if (!dbUser) return { ok: false, error: "Acces reserve aux comptes LOC actifs" };
     setUser(dbUser);
     localStorage.setItem(AUTH_KEY, JSON.stringify(dbUser));
     return { ok: true };

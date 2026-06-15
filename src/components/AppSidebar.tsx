@@ -1,14 +1,19 @@
-import { Link, useRouterState, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import {
-  LayoutDashboard,
-  Users,
-  UserPlus,
-  Archive,
   Activity,
+  Archive,
+  Bell,
+  FileCheck2,
+  FileText,
+  FolderArchive,
+  FolderOpen,
+  History,
+  LayoutDashboard,
   LogOut,
-  HeartPulse,
-  Moon,
+  Settings,
+  ShieldCheck,
+  UserPlus,
+  Users,
 } from "lucide-react";
 import {
   Sidebar,
@@ -22,82 +27,109 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
-import { Switch } from "@/components/ui/switch";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/auth";
+import logoImage from "../../photo/logo.png";
 
 const items = [
   { title: "Tableau de bord", url: "/", icon: LayoutDashboard },
   { title: "Citoyens", url: "/citizens", icon: Users },
   { title: "Nouveau citoyen", url: "/citizens/new", icon: UserPlus },
-  { title: "Archives décès", url: "/archives", icon: Archive },
-  { title: "Journal d'activité", url: "/logs", icon: Activity },
+  { title: "Dossiers actifs", url: "/citizens", icon: FolderOpen },
+  { title: "Dossiers archivés", url: "/archives", icon: FolderArchive },
+  { title: "Documents", url: "/citizens", icon: FileText },
+  { title: "Certificats de décès", url: "/archives", icon: FileCheck2 },
+  { title: "Historique", url: "/logs", icon: History },
+  { title: "Paramètres", url: "/", icon: Settings },
 ];
 
 export function AppSidebar() {
   const path = useRouterState({ select: (r) => r.location.pathname });
   const { user, logout } = useAuth();
   const navigate = useNavigate();
-  const [dark, setDark] = useState(false);
-
-  useEffect(() => {
-    const enabled = localStorage.getItem("csm_theme") === "dark";
-    setDark(enabled);
-    document.documentElement.classList.toggle("dark", enabled);
-  }, []);
-
-  function toggleDark(value: boolean) {
-    setDark(value);
-    localStorage.setItem("csm_theme", value ? "dark" : "light");
-    document.documentElement.classList.toggle("dark", value);
-  }
 
   return (
-    <Sidebar collapsible="icon">
-      <SidebarHeader className="border-b">
-        <div className="flex items-center gap-2 px-2 py-3">
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-            <HeartPulse className="h-5 w-5" />
+    <Sidebar
+      collapsible="icon"
+      className="border-r-0 bg-transparent p-3 data-[state=collapsed]:p-2"
+    >
+      <div className="flex h-full flex-col rounded-[1.35rem] border border-slate-200/90 bg-white shadow-[0_18px_45px_rgba(15,23,42,0.08)]">
+        <SidebarHeader className="border-b border-slate-100 px-3 py-4">
+          <div className="flex items-center gap-3">
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-white shadow-lg shadow-blue-600/15 ring-1 ring-slate-200">
+              <img src={logoImage} alt="Cahier de Santé Maroc" className="h-full w-full object-contain p-1" />
+            </div>
+            <div className="min-w-0 group-data-[collapsible=icon]:hidden">
+              <p className="truncate text-sm font-extrabold tracking-tight text-slate-950">
+                Cahier de Santé Maroc
+              </p>
+              <p className="truncate text-xs font-medium text-slate-500">Administration Locale</p>
+            </div>
           </div>
-          <div className="flex flex-col group-data-[collapsible=icon]:hidden">
-            <span className="text-sm font-semibold leading-tight">Cahier de Santé</span>
-            <span className="text-xs text-muted-foreground">Royaume du Maroc</span>
+          <div className="mt-4 rounded-2xl border border-blue-100 bg-blue-50/80 p-3 group-data-[collapsible=icon]:hidden">
+            <div className="flex items-center gap-2 text-xs font-semibold text-blue-700">
+              <ShieldCheck className="h-4 w-4" />
+              Plateforme sécurisée
+            </div>
+            <p className="mt-1 text-[11px] leading-4 text-slate-500">Arrondissement / Ville</p>
           </div>
-        </div>
-      </SidebarHeader>
-      <SidebarContent>
-        <SidebarGroup>
-          <SidebarGroupLabel>Administration locale</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {items.map((item) => (
-                <SidebarMenuItem key={item.url}>
-                  <SidebarMenuButton asChild isActive={path === item.url}>
-                    <Link to={item.url} className="flex items-center gap-2">
-                      <item.icon className="h-4 w-4" />
-                      <span>{item.title}</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-      </SidebarContent>
-      <SidebarFooter className="border-t">
-        <div className="flex flex-col gap-2 p-2">
-          <div className="rounded-md bg-muted/50 px-3 py-2 group-data-[collapsible=icon]:hidden">
-            <p className="truncate text-xs font-medium">{user?.full_name}</p>
-            <p className="truncate text-[10px] uppercase tracking-wide text-muted-foreground">
-              {user?.role.replace("_", " ")}
-            </p>
+        </SidebarHeader>
+
+        <SidebarContent className="px-3 py-4">
+          <SidebarGroup>
+            <SidebarGroupLabel className="px-2 text-[11px] font-bold uppercase tracking-[0.14em] text-slate-400">
+              Menu
+            </SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu className="mt-2 gap-1.5">
+                {items.map((item) => {
+                  const active = path === item.url || (item.url !== "/" && path.startsWith(item.url));
+                  return (
+                    <SidebarMenuItem key={`${item.title}-${item.url}`}>
+                      <SidebarMenuButton
+                        asChild
+                        isActive={active}
+                        className="group relative h-11 rounded-2xl px-3 text-slate-600 hover:bg-blue-50 hover:text-blue-700 data-[active=true]:bg-blue-50 data-[active=true]:font-bold data-[active=true]:text-blue-700 data-[active=true]:shadow-sm"
+                      >
+                        <Link to={item.url} className="flex items-center gap-3">
+                          <span className="absolute left-0 h-5 w-1 rounded-r-full bg-blue-600 opacity-0 transition-opacity group-data-[active=true]:opacity-100" />
+                          <item.icon className="h-4.5 w-4.5 shrink-0" />
+                          <span className="truncate group-data-[collapsible=icon]:hidden">
+                            {item.title}
+                          </span>
+                        </Link>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  );
+                })}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        </SidebarContent>
+
+        <SidebarFooter className="mt-auto border-t border-slate-100 p-3">
+          <div className="rounded-2xl bg-slate-50 p-3 group-data-[collapsible=icon]:hidden">
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex min-w-0 items-center gap-2">
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-blue-600 to-sky-400 text-sm font-bold text-white">
+                  {(user?.full_name ?? "AL").slice(0, 2).toUpperCase()}
+                </div>
+                <div className="min-w-0">
+                  <p className="truncate text-xs font-bold text-slate-900">{user?.full_name}</p>
+                  <Badge className="mt-1 rounded-full bg-blue-100 px-2 py-0 text-[10px] font-bold text-blue-700 hover:bg-blue-100">
+                    {user?.role.replace("_", " ")}
+                  </Badge>
+                </div>
+              </div>
+              <Button size="icon" variant="ghost" className="h-8 w-8 rounded-full">
+                <Bell className="h-4 w-4" />
+              </Button>
+            </div>
           </div>
-          <div className="flex items-center justify-between rounded-md px-3 py-2 group-data-[collapsible=icon]:hidden">
-            <span className="flex items-center gap-2 text-xs text-muted-foreground">
-              <Moon className="h-4 w-4" /> Mode sombre
-            </span>
-            <Switch checked={dark} onCheckedChange={toggleDark} />
-          </div>
+
           <SidebarMenuButton
+            className="mt-2 h-10 rounded-2xl text-slate-500 hover:bg-red-50 hover:text-red-600"
             onClick={async () => {
               await logout();
               navigate({ to: "/login" });
@@ -106,8 +138,8 @@ export function AppSidebar() {
             <LogOut className="h-4 w-4" />
             <span>Déconnexion</span>
           </SidebarMenuButton>
-        </div>
-      </SidebarFooter>
+        </SidebarFooter>
+      </div>
     </Sidebar>
   );
 }

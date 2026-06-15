@@ -266,10 +266,9 @@ export const loginUser = createServerFn({ method: "POST" })
       `SELECT u.*, r.name AS role
        FROM users u
        LEFT JOIN roles r ON r.id = u.role_id
-       WHERE (
-         LOWER(u.email) = LOWER(:identifier)
-         OR LOWER(u.employee_number) = LOWER(:identifier)
-       )
+       WHERE LOWER(u.employee_number) = LOWER(:identifier)
+       AND u.employee_number LIKE 'LOC-%'
+       AND r.name IN ('admin_local', 'agent_local')
        AND u.status = 'active'
        LIMIT 1`,
       { identifier: data.identifier },
